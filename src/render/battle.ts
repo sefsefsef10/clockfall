@@ -50,15 +50,15 @@ function floorBand(
     const t = (y - y0) / Math.max(1, y1 - y0)
     const half = 90 + t * 210
     const x = Math.round(VIEW_W / 2 - half)
-    const stripe = y % 4 === 0 ? dark : light
-    blot(ctx, x, y, Math.round(half * 2), 1, stripe)
+    const span = Math.round(half * 2)
+    blot(ctx, x, y, span, 1, y % 8 === 0 ? dark : light)
+    if ((y * 3) % 5 === 0) dot(ctx, x + ((y * 13) % Math.max(1, span - 2)), y, dark)
     if (era === 'void' && y % 6 === 0) {
-      dot(ctx, x + ((y * 17) % Math.round(half)), y, '#d7c07a')
-      dot(ctx, x + ((y * 17) % Math.round(half)) + 1, y, '#d7c07a')
+      const cx = x + ((y * 17) % Math.max(1, span - 4))
+      dot(ctx, cx, y, '#d7c07a')
+      dot(ctx, cx + 1, y, '#d7c07a')
     }
-    if (era === 'past' && Math.abs(y % 11) === 0) {
-      blot(ctx, VIEW_W / 2 - 18, y, 36, 1, y % 22 === 0 ? '#d7c07a' : '#7a2e3b')
-    }
+    if (era === 'past') blot(ctx, VIEW_W / 2 - 20, y, 40, 1, y % 6 === 0 ? '#d7c07a' : '#7a2e3b')
   }
 }
 

@@ -271,10 +271,12 @@ input[type='range'] {
 }
 
 .title-card {
-  width: min(92%, 460px);
+  width: min(94%, 36rem);
+  max-height: 100%;
   text-align: center;
   padding: clamp(0.55rem, 2.4cqi, 1.35rem) clamp(0.7rem, 3cqi, 1.5rem) clamp(0.7rem, 2cqi, 1.2rem);
   box-shadow: var(--shadow);
+  container-type: inline-size;
 }
 
 .dial {
@@ -310,7 +312,7 @@ input[type='range'] {
 
 .wordmark {
   margin: 0.08em 0 0.12em;
-  font-size: clamp(2rem, 13cqi, 5.4rem);
+  font-size: clamp(1.7rem, 11cqi, 4rem);
   line-height: 0.86;
   letter-spacing: -0.03em;
 }
@@ -449,6 +451,20 @@ input[type='range'] {
   gap: 4px;
 }
 
+.hud.has-touch {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4px 6px 6px;
+  gap: 4px;
+}
+
+.hud.has-touch .topbar,
+.hud.has-touch .hud-foot {
+  position: static;
+  width: 100%;
+}
+
 .hint {
   font-size: 0.75rem;
   color: var(--parchment);
@@ -558,16 +574,12 @@ input[type='range'] {
   }
 }
 
-.touch {
-  z-index: 4;
+.touch-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 6px;
-}
-
-.hud.has-touch .hud-foot {
-  bottom: 146px;
+  width: 100%;
+  gap: 6px;
 }
 
 .dpad {
@@ -1108,13 +1120,22 @@ input[type='range'] {
   .enemies,
   .log,
   .battle-party,
-  .command-dock {
-    position: static;
+  .command-dock,
+  .battle-meta {
+    position: relative;
+    z-index: 3;
     transform: none;
     width: auto;
     max-width: none;
     right: auto;
     left: auto;
+    top: auto;
+  }
+
+  .banner {
+    top: 24%;
+    z-index: 1;
+    font-size: clamp(1.15rem, 6cqi, 1.8rem);
   }
 
   .enemies {
@@ -1170,6 +1191,7 @@ input[type='range'] {
 
   .title-card {
     padding: 0.35rem 0.55rem 0.45rem;
+    overflow: auto;
   }
 
   .tagline {
@@ -1181,7 +1203,13 @@ input[type='range'] {
   }
 
   .wordmark {
-    font-size: clamp(1.7rem, 12cqi, 2.5rem);
+    font-size: clamp(1.55rem, 12cqi, 2.35rem);
+  }
+
+  .title-actions .btn {
+    min-height: 34px;
+    padding-top: 0.12rem;
+    padding-bottom: 0.12rem;
   }
 
   .topbar {
@@ -1192,8 +1220,26 @@ input[type='range'] {
     padding: 2px 6px;
   }
 
-  .hud.has-touch .hud-foot {
-    bottom: 140px;
+  .hud.has-touch .objective {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hud.has-touch .chip {
+    padding: 1px 4px 2px;
+  }
+
+  .hud.has-touch .stat {
+    margin-top: 1px;
+  }
+
+  .hud.has-touch .bar {
+    height: 4px;
+  }
+
+  .hud.has-touch .bar.mp {
+    height: 3px;
   }
 
   .chip {

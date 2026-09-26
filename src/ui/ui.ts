@@ -296,7 +296,7 @@ function buildTitle(model: UiModel, handlers: UiHandlers): HTMLElement {
   return layer
 }
 
-function buildHud(model: UiModel): HTMLElement {
+function buildHud(model: UiModel, handlers: UiHandlers): HTMLElement {
   const layer = div(`layer hud${touchShown(model) ? ' has-touch' : ''}`)
   const top = div('topbar')
   const where = div('hud-chip where')
@@ -316,7 +316,9 @@ function buildHud(model: UiModel): HTMLElement {
   const foot = div('hud-foot')
   const party = div('party')
   for (const member of model.party) party.append(buildChip(member))
-  foot.append(party, span('hint'))
+  foot.append(party)
+  if (touchShown(model)) foot.append(buildTouch(handlers))
+  else foot.append(span('hint'))
   layer.append(top, foot)
   return layer
 }
@@ -356,7 +358,7 @@ function bindPad(button: HTMLButtonElement, x: number, y: number, handlers: UiHa
 }
 
 function buildTouch(handlers: UiHandlers): HTMLElement {
-  const layer = div('layer touch')
+  const layer = div('touch-row')
   const dpad = div('dpad')
   dpad.setAttribute('role', 'group')
   dpad.setAttribute('aria-label', 'Move')
@@ -824,10 +826,6 @@ function hudSig(model: UiModel): string {
   return `${model.party.map((p) => p.id).join(',')}:${touchShown(model) ? 1 : 0}`
 }
 
-function touchSig(model: UiModel): string {
-  return touchShown(model) ? 'touch' : ''
-}
-
 function dialogueSig(model: UiModel): string {
   if (!model.dialogue || model.mode === 'ending' || model.mode === 'gameover') return ''
   return `${model.dialogue.speaker}\n${model.dialogue.portrait}\n${model.dialogue.text}`
@@ -914,9 +912,8 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): { render(model
   return {
     render(model: UiModel) {
       layer('title', titleSig(model), () => buildTitle(model, handlers))
-      layer('hud', hudSig(model), () => buildHud(model), (node) => updateHud(node, model))
+      layer('hud', hudSig(model), () => buildHud(model, handlers), (node) => updateHud(node, model))
       layer('battle', battleSig(model), () => buildBattle(model, handlers), (node) => updateBattle(node, model))
-      layer('touch', touchSig(model), () => buildTouch(handlers))
       layer('announce', announceSig(model), () => buildAnnounce(model))
       layer('dialogue', dialogueSig(model), () => buildDialogue(model, handlers), (node) => updateDialogue(node, model))
       const settingsOn = model.overlay === 'settings' && model.mode !== 'ending' && model.mode !== 'gameover'

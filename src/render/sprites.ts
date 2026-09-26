@@ -267,14 +267,20 @@ function gear(pix: Pix, cx: number, cy: number, r: number, teeth: number, light:
 function bellShape(pix: Pix, cx: number, top: number, height: number, light: string, dark: string): void {
   pix.rect(cx - 1, top, 2, 2, dark)
   pix.p(cx - 1, top, light)
+  let lastHalf = 2
+  let lastY = top + 2
   for (let i = 0; i < height; i++) {
     const t = height <= 1 ? 1 : i / (height - 1)
-    const half = Math.max(2, Math.round(2 + t * (height * 0.42)))
+    const flare = t < 0.62 ? 0.15 + t * 0.25 : 0.3 + ((t - 0.62) / 0.38) * 1.15
+    const half = Math.max(2, Math.round(2 + flare * height * 0.42))
     const y = top + 2 + i
-    pix.rect(cx - half, y, half * 2, 1, t > 0.72 ? dark : light)
-    pix.p(cx - half + 1, y, t > 0.72 ? light : WHITE)
+    pix.rect(cx - half, y, half * 2, 1, t > 0.78 ? dark : light)
+    pix.p(cx - half + 1, y, WHITE)
+    lastHalf = half
+    lastY = y
   }
-  pix.p(cx, top + 2 + height - 2, dark)
+  pix.rect(cx - lastHalf, lastY, lastHalf * 2, 1, light)
+  pix.p(cx, lastY - 1, dark)
 }
 
 function brokenHalo(pix: Pix, cx: number, cy: number, r: number): void {
@@ -1249,48 +1255,49 @@ function paintWraithBattle(pix: Pix, frame: number): void {
   pix.rect(20, 2, 1, 44, WOOD)
   meat(pix, 18, 2, 6, 6, METAL, METAL_D)
   pix.p(21, 3, WHITE)
+  const tears = [0, -1, -2, -6, -2, 0, -1, -5, -8, -3, 0, -2, -4, -9, -2, -1, 0, -6, -3, -1, -7, -2]
   for (let row = 0; row < 22; row++) {
-    const jag = row % 4 === 3 ? -4 : row % 5 === 0 ? -2 : 0
+    const jag = tears[row] ?? -2
     const y = 8 + row + (frame && row > 12 ? 1 : 0)
-    pix.rect(6, y, 14 + jag, 1, row % 2 ? PALE : PALE_D)
-    if (row % 6 === 4) pix.rect(8, y, 3, 1, ASH)
+    const width = 14 + jag
+    if (width < 3) continue
+    pix.rect(6, y, width, 1, row % 2 ? PALE : PALE_D)
+    if (row % 5 === 3) pix.rect(8, y, 2, 1, ASH)
   }
   pix.p(10, 16, WHITE)
-  pix.p(14, 22, GOLD_D)
+  pix.p(12, 20, PALE_D)
 }
 
 function paintMinuteBattle(pix: Pix, frame: number): void {
   const x = 8
-  pix.rect(x, 2, 2, 38, METAL)
-  pix.rect(x, 2, 1, 36, WHITE)
-  pix.p(x, 1, METAL_D)
-  pix.rect(x - 4, 8, 10, 2.2, GOLD_D)
-  pix.rect(x - 3, 8, 8, 1.2, GOLD)
-  pix.ellipse(x + 1, 18, 3, 4, METAL_D)
-  pix.ellipse(x + 1, 17, 2.2, 3, METAL)
-  const eye = frame ? 16 : 15
-  pix.rect(x + 1, eye, 2, 2.2, WHITE)
-  pix.p(x + 2, eye + 1, OUT)
-  pix.p(x, 40, WHITE)
-  pix.p(x + 1, 41, METAL_D)
+  pix.p(x + 1, 41, WHITE)
+  pix.rect(x, 16, 2, 25, METAL)
+  pix.rect(x, 16, 1, 23, WHITE)
+  ball(pix, x + 1, 12, 4, 5, METAL, METAL_D, WHITE)
+  pix.rect(x - 4, 15, 10, 2, GOLD_D)
+  pix.rect(x - 3, 15, 8, 1, GOLD)
+  const eye = frame ? 12 : 11
+  pix.rect(x, eye, 3, 3, WHITE)
+  pix.rect(x + 1, eye + 1, 2, 2, OUT)
+  pix.p(x, eye, WHITE)
 }
 
 function paintHourBattle(pix: Pix, frame: number): void {
-  ball(pix, 28, 8, 5, 5, METAL, METAL_D, WHITE)
-  pix.ellipse(28, 8, 1.6, 1.6, OUT)
+  ball(pix, 27, 8, 6, 6, METAL, METAL_D, WHITE)
+  pix.ellipse(27, 8, 2, 2, OUT)
   const yOff = frame ? 1 : 0
-  for (let i = 0; i <= 22; i++) {
-    const t = i / 22
-    const x = 26 - t * 14
-    const y = 10 + t * 16 + yOff
-    const rad = 5 - t * 1.5
-    pix.ellipse(x, y, rad, rad * 0.8, GOLD_D)
-    pix.ellipse(x - 0.4, y - 0.4, Math.max(1, rad - 1), Math.max(1, rad * 0.8 - 1), GOLD)
+  for (let i = 0; i <= 16; i++) {
+    const t = i / 16
+    const x = 24 - t * 10
+    const y = 12 + t * 12 + yOff
+    pix.ellipse(x, y, 4.4, 3.6, GOLD_D)
+    pix.ellipse(x - 0.4, y - 0.4, 3, 2.3, GOLD)
   }
-  ball(pix, 10, 30, 7, 7, GOLD, GOLD_D, EMBER_HI)
-  pix.ellipse(10, 30, 2.4, 2.4, GOLD_D)
-  pix.rect(12, 26, 3, 3, WHITE)
-  pix.p(14, 27, OUT)
+  ball(pix, 11, 30, 8, 8, GOLD, GOLD_D, EMBER_HI)
+  pix.ellipse(11, 30, 3, 3, GOLD_D)
+  pix.rect(13, 26, 4, 4, WHITE)
+  pix.rect(14, 27, 2, 2, OUT)
+  pix.p(13, 26, WHITE)
   cracks(pix, 8, 28, WHITE)
 }
 
