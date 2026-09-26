@@ -813,7 +813,7 @@ function buildGameover(model: UiModel, handlers: UiHandlers): HTMLElement {
 }
 
 function titleSig(model: UiModel): string {
-  if (model.mode !== 'title' || model.battle) return ''
+  if (model.mode !== 'title' || model.battle || model.overlay !== 'none') return ''
   return `title:${model.hasSave ? 1 : 0}:${model.cleared ? 1 : 0}`
 }
 

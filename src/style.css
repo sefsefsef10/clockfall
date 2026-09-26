@@ -199,7 +199,7 @@ h2,
   display: grid;
   place-items: center;
   padding: 8px;
-  background: rgba(16, 12, 10, 0.62);
+  background: rgba(16, 12, 10, 0.86);
   z-index: 7;
 }
 
@@ -1130,12 +1130,21 @@ input[type='range'] {
     right: auto;
     left: auto;
     top: auto;
+    bottom: auto;
   }
 
-  .banner {
-    top: 24%;
-    z-index: 1;
-    font-size: clamp(1.15rem, 6cqi, 1.8rem);
+  .banner,
+  .tutorial {
+    position: static;
+    transform: none;
+    left: auto;
+    top: auto;
+    width: auto;
+    max-width: none;
+    z-index: auto;
+    margin: 0 8px;
+    font-size: clamp(1.05rem, 5cqi, 1.55rem);
+    text-align: center;
   }
 
   .enemies {
@@ -1190,8 +1199,7 @@ input[type='range'] {
   }
 
   .title-card {
-    padding: 0.35rem 0.55rem 0.45rem;
-    overflow: auto;
+    padding: 0.28rem 0.45rem 0.35rem;
   }
 
   .tagline {
@@ -1203,13 +1211,37 @@ input[type='range'] {
   }
 
   .wordmark {
-    font-size: clamp(1.55rem, 12cqi, 2.35rem);
+    margin: 0;
+    font-size: 1.65rem;
+  }
+
+  .tagline {
+    margin: 0.15rem 0 0.25rem;
+    font-size: 0.7rem;
+    line-height: 1.25;
   }
 
   .title-actions .btn {
-    min-height: 34px;
-    padding-top: 0.12rem;
-    padding-bottom: 0.12rem;
+    min-height: 32px;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+  }
+
+  .stamp {
+    margin: 0.15rem auto 0.3rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .kicker {
+    font-size: 0.6rem;
+  }
+
+  .dpad {
+    grid-template-columns: 44px 44px;
+    grid-template-rows: 44px 44px;
+    grid-template-areas:
+      'up left'
+      'down right';
   }
 
   .topbar {
