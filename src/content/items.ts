@@ -166,6 +166,15 @@ export const items: ItemDef[] = [
     def: 14,
   },
   {
+    id: 'verdant-mantle',
+    name: 'Verdant Mantle',
+    blurb: 'Woven from the tree that kept one patch of Ashspire alive across the centuries.',
+    kind: 'armor',
+    price: 0,
+    def: 12,
+    mag: 4,
+  },
+  {
     id: 'fuse-east',
     name: 'East Fuse',
     blurb: 'Copper-sweet and warm at one end. The cathedral\'s east socket is waiting.',

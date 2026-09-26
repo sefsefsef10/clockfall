@@ -120,6 +120,30 @@ export const scripts: Record<string, ScriptStep[]> = {
     },
     { op: 'obj', text: 'The Rust Cathedral is holding a Volt Bell. It wants two fuses.' },
   ],
+  seed_hear: [
+    { op: 'say', who: 'Iona', portrait: 'survivor', text: 'Rain never reaches this corner. The roots died before I was born. I wish there had been a tree here when the city still had a chance.' },
+    { op: 'say', who: 'Mira', portrait: 'mira', text: 'Crownkeep stood here centuries ago. If its gardener still has a seed, we might give this place a past.' },
+    { op: 'flag', id: 'seed_heard' },
+  ],
+  seed_plant: [
+    { op: 'say', who: 'Gardener', portrait: 'npc', text: 'This is the last rainroot seed. The court wants it behind stone, but roots have no use for walls.' },
+    { op: 'say', who: 'Kael', portrait: 'kael', text: 'There is a place that will need it. Plant it here, where the years can reach.' },
+    { op: 'flag', id: 'seed_heard' },
+    { op: 'flag', id: 'seed_planted' },
+    { op: 'say', who: 'Gardener', portrait: 'npc', text: 'Then let it grow beyond everyone who remembers my name.' },
+  ],
+  seed_witness: [
+    { op: 'say', who: 'Treekeeper', portrait: 'npc', text: 'This rainroot has stood here longer than Leorain. No one knows who planted it, only that its branches catch every storm.' },
+    { op: 'say', who: 'Mira', portrait: 'mira', text: 'It made it this far. Perhaps the roots made it farther.' },
+    { op: 'flag', id: 'seed_seen' },
+  ],
+  seed_reward: [
+    { op: 'say', who: 'Iona', portrait: 'survivor', text: 'The old rainroot catches water even now. People sleep under it. You gave us a place for the rain.' },
+    { op: 'give', item: 'verdant-mantle', n: 1 },
+    { op: 'echo', n: 3 },
+    { op: 'flag', id: 'seed_claimed' },
+    { op: 'say', who: 'Iona', portrait: 'survivor', text: 'Take this mantle. We made it from what the tree sheds. There is another echo in its rings, too.' },
+  ],
   cathedral_door: [
     {
       op: 'say',

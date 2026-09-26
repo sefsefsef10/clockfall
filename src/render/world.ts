@@ -461,6 +461,118 @@ function drawTile(
   if (era === 'void' && ch !== ' ' && ch !== 'w') cracks(ctx, sx, sy, tx, ty, pal.crack)
 }
 
+/** Small landmarks are tied to tile coordinates, so camera movement never shuffles them. */
+function eraDetail(ctx: CanvasRenderingContext2D, ch: string, sx: number, sy: number, tx: number, ty: number, era: Era, time: number, pal: Pal): void {
+  const seed = hash(tx, ty)
+  if (era === 'present') {
+    if ((ch === '.' || ch === 'f' || ch === '~') && seed % 9 === 0) {
+      const x = sx + 3 + (seed % 10)
+      const y = sy + 4 + ((seed >>> 5) % 9)
+      const lit = Math.sin(time * 3 + seed) > -0.1
+      dot(ctx, x, y, lit ? '#fff2a8' : pal.flowerB)
+      if (lit) {
+        ctx.save()
+        ctx.globalAlpha = 0.19
+        blot(ctx, x - 2, y - 2, 5, 5, '#f2d15a')
+        ctx.restore()
+      }
+    }
+    if (ch === 't' && seed % 3 === 0) {
+      dot(ctx, sx + 11, sy + 4, '#b5d57b')
+      dot(ctx, sx + 5, sy + 7, '#d2e798')
+    }
+  } else if (era === 'future') {
+    if ((ch === 'a' || ch === 'r' || ch === 'm') && seed % 4 === 0) {
+      const pulse = Math.sin(time * 2 + seed) > 0.3
+      blot(ctx, sx + 5, sy + 10, 3, 1, pulse ? '#a1e4d8' : '#496f72')
+      dot(ctx, sx + 9, sy + 11, pal.rust)
+    }
+    if (ch === 'w') {
+      const x = sx + ((Math.floor(time * 3) + seed) % 12) + 2
+      blot(ctx, x, sy + 6, 3, 1, '#92bbc0')
+    }
+  } else if (era === 'past') {
+    if ((ch === 's' || ch === 'c' || ch === '|') && seed % 7 === 0) {
+      blot(ctx, sx + 3, sy + 3, 2, 1, '#ded3b5')
+      dot(ctx, sx + 5, sy + 4, pal.gold)
+    }
+    if (ch === 'w') dot(ctx, sx + 8, sy + 6, '#c4cce0')
+  } else if ((ch === '.' || ch === 's' || ch === 'a') && seed % 6 === 0) {
+    const pulse = Math.sin(time * 2.5 + seed) > 0
+    dot(ctx, sx + 4 + (seed % 8), sy + 5 + ((seed >>> 4) % 6), pulse ? '#f7e8b2' : '#645a73')
+  }
+  if (ch === 'k' || ch === 'g') {
+    const pulse = 0.13 + (Math.sin(time * 3 + seed) + 1) * 0.08
+    ctx.save()
+    ctx.globalAlpha = pulse
+    blot(ctx, sx + 1, sy + 1, 14, 14, ch === 'k' ? '#dcfff5' : pal.gold)
+    ctx.restore()
+  }
+}
+
+function weather(ctx: CanvasRenderingContext2D, era: Era, time: number): void {
+  const count = era === 'present' ? 13 : era === 'future' ? 30 : 20
+  const colors = era === 'present' ? ['#fff3bb', '#d8e7b5']
+    : era === 'future' ? ['#c18b6a', '#a7a099']
+      : era === 'past' ? ['#e7dfd2', '#d7c07a'] : ['#d7c07a', '#7ec8c3']
+  ctx.save()
+  ctx.globalAlpha = era === 'present' ? 0.65 : 0.36
+  for (let i = 0; i < count; i++) {
+    const speed = era === 'future' ? 8 + (i % 5) * 3 : 4 + (i % 4) * 2
+    const drift = era === 'void' ? Math.sin(time * 0.8 + i) * 9 : time * (era === 'future' ? -3 : 2)
+    const x = ((i * 79 + drift) % VIEW_W + VIEW_W) % VIEW_W
+    const y = (i * 97 + time * speed) % VIEW_H
+    const color = colors[i % colors.length] ?? '#d7c07a'
+    dot(ctx, x, y, color)
+    if (era === 'future' && i % 4 === 0) dot(ctx, x - 1, y - 1, color)
+  }
+  ctx.restore()
+}
+
+interface CausalityView {
+  seed_heard?: boolean
+  seed_planted?: boolean
+  seed_seen?: boolean
+  seed_claimed?: boolean
+}
+
+function temporalSeed(ctx: CanvasRenderingContext2D, map: GameMap, camX: number, camY: number, time: number, state?: CausalityView): void {
+  if (map.id !== 'crownkeep' && map.id !== 'leorain' && map.id !== 'ashspire') return
+  const sx = 8 * TILE - camX
+  const sy = 16 * TILE - camY
+  if (sx < -TILE || sx > VIEW_W || sy < -TILE * 2 || sy > VIEW_H + TILE) return
+  const planted = state?.seed_planted === true
+  const grown = planted && map.id !== 'crownkeep'
+  const future = map.id === 'ashspire'
+  // The same stone rim persists across the three ages.
+  blot(ctx, sx + 2, sy + 11, 12, 3, future ? '#5e7278' : '#8d8f99')
+  blot(ctx, sx + 3, sy + 10, 10, 2, future ? '#3d625a' : '#6b4a2e')
+  dot(ctx, sx + 3, sy + 11, '#d7c07a')
+  dot(ctx, sx + 12, sy + 11, '#d7c07a')
+  if (grown) {
+    const leaf = future ? '#82b99a' : '#3f7a32'
+    const leafLight = future ? '#b8e3b5' : '#9dcf6d'
+    blot(ctx, sx + 7, sy + 1, 2, 10, future ? '#716957' : '#6b4a2e')
+    blob(ctx, sx + 8, sy + 1, 6, 5, future ? '#416f67' : '#2a5424')
+    blob(ctx, sx + 7, sy - 1, 4, 3, leaf)
+    dot(ctx, sx + 5, sy - 3, leafLight)
+    dot(ctx, sx + 10, sy + 1, leafLight)
+    if (future) {
+      dot(ctx, sx + 6, sy + 9, '#7ec8c3')
+      dot(ctx, sx + 11, sy + 7, '#7ec8c3')
+      if (state?.seed_claimed) dot(ctx, sx + 8, sy - 4, '#fff2bd')
+    } else if (state?.seed_seen) dot(ctx, sx + 8, sy - 5, '#fff2bd')
+  } else if (planted) {
+    blot(ctx, sx + 7, sy + 5, 2, 6, '#6e9b59')
+    blot(ctx, sx + 5, sy + 4, 3, 2, '#a4c889')
+    blot(ctx, sx + 9, sy + 3, 3, 2, '#8fbf5e')
+    if (Math.sin(time * 2.5) > 0) dot(ctx, sx + 8, sy + 2, '#d7c07a')
+  } else {
+    blot(ctx, sx + 5, sy + 8, 6, 2, future ? '#6d645c' : '#8a7568')
+    if (future && state?.seed_heard) dot(ctx, sx + 8, sy + 7, '#7ec8c3')
+  }
+}
+
 function shadow(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   ctx.fillStyle = 'rgba(26,18,14,0.4)'
   const rx = 5
@@ -479,6 +591,7 @@ export function drawWorld(
     camera: { x: number; y: number }
     time: number
     actors: ActorDraw[]
+    causality?: CausalityView
   },
 ): void {
   const { map, time, actors } = opts
@@ -500,8 +613,11 @@ export function drawWorld(
       const sx = tx * TILE - camX
       const sy = ty * TILE - camY
       drawTile(ctx, ch, sx, sy, tx, ty, pal, map.era, time, tileAt(map, tx, ty - 1))
+      eraDetail(ctx, ch, sx, sy, tx, ty, map.era, time, pal)
     }
   }
+
+  temporalSeed(ctx, map, camX, camY, time, opts.causality)
 
   const sorted = actors.slice().sort((a, b) => a.y - b.y || a.x - b.x)
   for (const actor of sorted) {
@@ -516,5 +632,6 @@ export function drawWorld(
       flash: actor.flash === true,
     })
   }
+  weather(ctx, map.era, time)
   ctx.imageSmoothingEnabled = false
 }

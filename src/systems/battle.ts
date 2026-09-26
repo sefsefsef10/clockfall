@@ -344,13 +344,19 @@ function advanceCharges(battle: BattleState, dt: number): void {
   }
 }
 
-function snapshot(battle: BattleState): void {
+function snapshot(battle: BattleState, rng = battle.rng): void {
+  const bag = bagOf(battle)
   const shot: BattleSnapshot = {
     allies: structuredClone(battle.allies),
     enemies: structuredClone(battle.enemies),
     lockedElement: battle.lockedElement,
     hourSpawned: battle.hourSpawned,
     log: structuredClone(battle.log),
+    rng,
+    discovered: structuredClone(battle.discovered),
+    consumed: battle.consumed.slice(),
+    inventory: { ...bag.inventory },
+    rewards: structuredClone(battle.rewards),
   }
   battle.history.push(shot)
   if (battle.history.length > 6) battle.history.shift()
@@ -503,7 +509,7 @@ function planSkill(battle: BattleState, enemy: Combatant, skill: EnemySkill, tar
   return plan
 }
 
-function beginResolve(battle: BattleState, actors: Combatant[], plan: Resolving): void {
+function beginResolve(battle: BattleState, actors: Combatant[], plan: Resolving, rngBefore = battle.rng): void {
   if (plan.mpCost > 0 && actors.some(actor => actor.mp < plan.mpCost)) {
     log(battle, 'Not enough MP.')
     return
@@ -512,7 +518,7 @@ function beginResolve(battle: BattleState, actors: Combatant[], plan: Resolving)
     log(battle, 'Empty.')
     return
   }
-  snapshot(battle)
+  snapshot(battle, rngBefore)
   let died = false
   for (const actor of actors) {
     if (!tickPoison(battle, actor)) died = true
@@ -875,6 +881,7 @@ function consumeStagger(battle: BattleState, unit: Combatant): boolean {
 }
 
 function fireCharge(battle: BattleState, enemy: Combatant): void {
+  const rngBefore = battle.rng
   const skillId = enemy.charging?.skillId
   const skill = enemyById[enemy.defId]?.skills.find((entry: EnemySkill) => entry.id === skillId)
   enemy.charging = null
@@ -884,10 +891,11 @@ function fireCharge(battle: BattleState, enemy: Combatant): void {
     log(battle, 'No target.')
     return
   }
-  beginResolve(battle, [enemy], planSkill(battle, enemy, skill, targets))
+  beginResolve(battle, [enemy], planSkill(battle, enemy, skill, targets), rngBefore)
 }
 
 function startEnemyTurn(battle: BattleState, enemy: Combatant): void {
+  const rngBefore = battle.rng
   const skill = pickSkill(battle, enemy)
   if (!skill) {
     enemy.atb = 0
@@ -913,7 +921,7 @@ function startEnemyTurn(battle: BattleState, enemy: Combatant): void {
     log(battle, 'No target.')
     return
   }
-  beginResolve(battle, [enemy], planSkill(battle, enemy, skill, targets))
+  beginResolve(battle, [enemy], planSkill(battle, enemy, skill, targets), rngBefore)
 }
 
 function runPhase(battle: BattleState): void {
@@ -1222,6 +1230,10 @@ function doEcho(battle: BattleState): void {
   battle.lockedElement = shot.lockedElement
   battle.hourSpawned = shot.hourSpawned
   battle.log = shot.log.slice()
+  battle.rng = shot.rng
+  battle.discovered = structuredClone(shot.discovered)
+  battle.consumed = shot.consumed.slice()
+  battle.rewards = structuredClone(shot.rewards)
   battle.echoes -= 1
   battle.anim = null
   battle.phase = 'run'
@@ -1233,8 +1245,8 @@ function doEcho(battle: BattleState): void {
   battle.result = 'ongoing'
   battle.menu = 'root'
   battle.menuIndex = 0
-  battle.rewards = { xp: 0, gold: 0, items: [], levels: [] }
   const bag = bagOf(battle)
+  bag.inventory = { ...shot.inventory }
   bag.pending = null
   bag.resolving = null
   bag.chosenUid = null

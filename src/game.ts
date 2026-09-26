@@ -25,6 +25,7 @@ import {
   tickBattle,
 } from './systems/battle.ts'
 import { createField, fieldCamera, tickField } from './systems/field.ts'
+import { chronicleRows } from './systems/journal.ts'
 import {
   hasManualSave,
   loadAuto,
@@ -77,6 +78,7 @@ type Screen =
   | { id: 'equip-pick'; who: CharacterId; slot: 'weapon' | 'armor' }
   | { id: 'techs' }
   | { id: 'lore' }
+  | { id: 'chronicle' }
 
 type ScriptRun = { steps: ScriptStep[]; index: number }
 
@@ -462,6 +464,11 @@ function menuAction(id: string): void {
     menuIndex = 0
     return
   }
+  if (id === 'nav-chronicle') {
+    screen = { id: 'chronicle' }
+    menuIndex = 0
+    return
+  }
   if (id === 'nav-settings') {
     settingsFrom = 'menu'
     overlay = 'settings'
@@ -669,6 +676,10 @@ function playScript(id: string): void {
   if (id === 'intro' && save.flags.intro_done) return
   if (id === 'after_hound' && save.flags.future_open) return
   if (id === 'after_saint' && save.flags.past_open) return
+  if (id === 'cathedral_door' && save.flags.fuses_set) return
+  if (id === 'seed_plant' && save.flags.seed_planted) return
+  if (id === 'seed_witness' && save.flags.seed_seen) return
+  if (id === 'seed_reward' && save.flags.seed_claimed) return
   if (id === 'crown_arrive' && (save.flags.torin_spar || save.flags.triple_ready)) return
   if (id === 'final_intro' && save.flags.stillness_dead) return
   const steps = scripts[id]
@@ -725,7 +736,7 @@ function advanceScript(): void {
       continue
     }
     if (step.op === 'echo') {
-      save.echoMax = step.n
+      save.echoMax = Math.max(save.echoMax, step.n)
       continue
     }
     if (step.op === 'despawn') {
@@ -1055,7 +1066,7 @@ function paint(ctx: CanvasRenderingContext2D): void {
   }
   if (field) {
     const map = maps[field.mapId]
-    drawWorld(ctx, { map, camera: fieldCamera(field), time: clock, actors: actors() })
+    drawWorld(ctx, { map, camera: fieldCamera(field), time: clock, actors: actors(), causality: save?.flags })
   }
 }
 
@@ -1178,6 +1189,8 @@ function menuTitle(): string {
       return 'Techs'
     case 'lore':
       return 'Bestiary'
+    case 'chronicle':
+      return 'Chronicle'
     default:
       return 'Pause'
   }
@@ -1192,6 +1205,7 @@ function menuRows(): MenuModel['rows'] {
       { id: 'nav-equip', label: 'Equip' },
       { id: 'nav-techs', label: 'Techs' },
       { id: 'nav-lore', label: 'Bestiary' },
+      { id: 'nav-chronicle', label: 'Chronicle' },
       { id: 'do-save', label: 'Save' },
       { id: 'nav-settings', label: 'Settings' },
       { id: 'menu-close', label: 'Close' },
@@ -1212,6 +1226,7 @@ function menuRows(): MenuModel['rows'] {
       { id: 'back', label: 'Back' },
     ]
   }
+  if (screen.id === 'chronicle') return chronicleRows(save)
   if (screen.id === 'items') {
     const rows = Object.entries(save.inventory)
       .filter(([, count]) => count > 0)
@@ -1414,6 +1429,7 @@ function view(): UiModel {
   const map = field ? maps[field.mapId] : null
   let battleUi: UiModel['battle'] = null
   if (battle && overlay === 'none' && mode !== 'gameover') {
+    const actorUid = battle.actorUid
     const commands = currentCommands(battle)
     const targets = currentTargets(battle)
     battleUi = {
@@ -1426,6 +1442,8 @@ function view(): UiModel {
       log: battle.log.slice(-3),
       echoes: battle.echoes,
       echoMax: battle.echoMax,
+      actorName: battle.allies.find((ally) => ally.uid === actorUid)?.name ?? null,
+      canRewind: battle.echoes > 0 && battle.history.length > 0,
       banner: battle.bannerT > 0 ? battle.banner : '',
       tutorial:
         battle.tutorial && (battle.phase === 'command' || battle.phase === 'intro')
@@ -1450,6 +1468,8 @@ function view(): UiModel {
         hp: enemy.hp,
         maxHp: enemy.maxHp,
         charging: enemy.charging ? enemy.charging.name : '',
+        chargeProgress: enemy.charging ? Math.min(1, enemy.charging.t / Math.max(0.001, enemy.charging.dur)) : 0,
+        ultimate: enemy.charging?.ultimate === true,
         boss: enemy.boss,
       })),
     }
