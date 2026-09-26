@@ -1,0 +1,223 @@
+import type { ScriptStep } from '../types.ts'
+
+export const scripts: Record<string, ScriptStep[]> = {
+  intro: [
+    {
+      op: 'say',
+      who: 'Crier',
+      portrait: 'npc',
+      text: 'The Millennial Fair of Leorain runs on a clock that never skips. Today the second hand keeps starting over.',
+    },
+    {
+      op: 'say',
+      who: 'Kael',
+      portrait: 'kael',
+      text: 'That was the bell tower. It struck noon, then struck noon again.',
+    },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'Stay behind the bar when it fills. I came a long way to see if anyone here can still move.',
+    },
+    { op: 'join', who: 'mira' },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'A scrap of the rift is already on the green. Strike it. Don\'t study it.',
+    },
+    { op: 'battle', enemies: ['pup'], tutorial: true, ambush: 'fair' },
+    {
+      op: 'say',
+      who: 'Kael',
+      portrait: 'kael',
+      text: 'You fight like someone who has already lost once.',
+    },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'I have. The age after this one is ash. The Stillness is holding every clock on the same dead second.',
+    },
+    { op: 'echo', n: 1 },
+    { op: 'flag', id: 'intro_done', value: true },
+    { op: 'obj', text: 'Leave Leorain by the north road. The Clockwood is leaking.' },
+  ],
+  inn: [
+    {
+      op: 'say',
+      who: 'Innkeeper',
+      portrait: 'merchant',
+      text: 'A bed and a mended coat. Fifteen marks.',
+    },
+    { op: 'inn', cost: 15, elseSay: 'That\'s short. The fair eats coin faster than I do.' },
+    {
+      op: 'say',
+      who: 'Innkeeper',
+      portrait: 'merchant',
+      text: 'There. The clock can argue with someone else tonight.',
+    },
+  ],
+  woods_enter: [
+    {
+      op: 'say',
+      who: 'Kael',
+      portrait: 'kael',
+      text: 'The path sounds like a watch left open in the rain.',
+    },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'Bells ahead. The wood will ask for a day in the right order.',
+    },
+  ],
+  bells_ok: [
+    { op: 'flag', id: 'bells_solved', value: true },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'The clearing remembers a full day. North is open.',
+    },
+    { op: 'obj', text: 'A hound is pacing past the north bells.' },
+  ],
+  bells_bad: [
+    {
+      op: 'say',
+      who: 'Kael',
+      portrait: 'kael',
+      text: 'That was not the shape of a day.',
+    },
+    { op: 'battle', enemies: ['clockmite'] },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'Dawn, noon, dusk. Try again.',
+    },
+  ],
+  after_hound: [
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'The rift under that hound points forward, into ash. The fair clock can follow it now.',
+    },
+    { op: 'flag', id: 'future_open', value: true },
+    { op: 'flag', id: 'sever_unlocked', value: true },
+    { op: 'unlock', tech: 'sever' },
+    { op: 'give', item: 'ether', n: 1 },
+    { op: 'obj', text: 'Return to the clock in Leorain and open the gate to Ashspire.' },
+  ],
+  ash_arrive: [
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'This is my Leorain. The fair burned a long time ago. Keep your voice down around the bell-priests.',
+    },
+    { op: 'obj', text: 'The Rust Cathedral is holding a Volt Bell. It wants two fuses.' },
+  ],
+  cathedral_door: [
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'East fuse, west fuse. The door is a lock with a appetite.',
+    },
+    {
+      op: 'requireItems',
+      items: ['fuse-east', 'fuse-west'],
+      elseSay: 'The sockets are empty. Find both fuses.',
+      portrait: 'mira',
+    },
+    { op: 'flag', id: 'fuses_set', value: true },
+    {
+      op: 'say',
+      who: 'Kael',
+      portrait: 'kael',
+      text: 'It took them like a mouth. I dislike doors with habits.',
+    },
+  ],
+  after_saint: [
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'The Volt Bell is awake. Crownkeep will hear it, centuries back. Torin Hale still has a pulse there.',
+    },
+    { op: 'flag', id: 'past_open', value: true },
+    { op: 'flag', id: 'bolt_unlocked', value: true },
+    { op: 'unlock', tech: 'bolt' },
+    { op: 'echo', n: 2 },
+    { op: 'gold', n: 40 },
+    { op: 'obj', text: 'Open the gate for Crownkeep, in the age before the fair.' },
+  ],
+  crown_arrive: [
+    {
+      op: 'say',
+      who: 'Torin Hale',
+      portrait: 'torin',
+      text: 'You carry a sound from a cathedral that has not been built. Lower your steel. I will see whether time sent soldiers or thieves.',
+    },
+    { op: 'battle', enemies: ['torin-spar'], boss: true, victoryFlag: 'torin_spar' },
+    {
+      op: 'say',
+      who: 'Torin',
+      portrait: 'torin',
+      text: 'Enough. The oath was to a crown, and the crown is late. I am not.',
+    },
+    { op: 'join', who: 'torin' },
+    { op: 'flag', id: 'triple_ready', value: true },
+    { op: 'flag', id: 'dial_open', value: true },
+    { op: 'unlock', tech: 'clockfall' },
+    { op: 'obj', text: 'The Sunken Dial is open. Three of us, or not at all.' },
+  ],
+  final_intro: [
+    {
+      op: 'say',
+      who: 'Torin',
+      portrait: 'torin',
+      text: 'No banners down here. Only the weight that keeps the ages from touching.',
+    },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'The Stillness thinks motion is the disease. It hides behind its minutes. Break those first.',
+    },
+    {
+      op: 'say',
+      who: 'The Stillness',
+      portrait: 'stillness',
+      text: 'You brought the day in with you. Set it down.',
+    },
+    {
+      op: 'say',
+      who: 'Kael',
+      portrait: 'kael',
+      text: 'We brought three. Move.',
+    },
+    {
+      op: 'battle',
+      enemies: ['stillness', 'minute', 'minute'],
+      boss: true,
+      victoryFlag: 'stillness_dead',
+    },
+    {
+      op: 'say',
+      who: 'Mira',
+      portrait: 'mira',
+      text: 'The second hand is embarrassed. Let it go.',
+    },
+    {
+      op: 'say',
+      who: 'Kael',
+      portrait: 'kael',
+      text: 'Leorain can be late to its own ending. That\'s fine.',
+    },
+    { op: 'endgame' },
+  ],
+}
