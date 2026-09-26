@@ -1,12 +1,12 @@
 :root {
-  --ink: #140e0c;
+  --ink: #10191a;
   --parchment: #f3e6c8;
   --parchment-deep: #e4d2ae;
-  --gold: #e0b15a;
-  --brass: #8a6230;
+  --gold: #e8bd68;
+  --brass: #9b7540;
   --seal: #c4492d;
-  --teal: #7ec8c3;
-  --forest: #1f4a3c;
+  --teal: #77c9c2;
+  --forest: #153936;
   --good: #7dba6a;
   --bad: #e25b4a;
   --shadow: 4px 4px 0 #0008;
@@ -29,8 +29,10 @@ body {
 body {
   display: grid;
   place-items: center;
-  background-color: #100c0a;
-  background-image: radial-gradient(ellipse 70% 55% at 50% 42%, #3a2416 0%, #100c0a 68%);
+  background-color: #080f13;
+  background-image:
+    radial-gradient(ellipse 64% 60% at 50% 44%, rgba(28, 68, 69, 0.54) 0%, rgba(16, 31, 34, 0.82) 54%, #080f13 100%),
+    linear-gradient(145deg, #101b20, #080f13 68%);
   color: var(--parchment);
   font-family: Outfit, sans-serif;
   font-weight: 380;
@@ -42,6 +44,8 @@ body {
   width: min(100vw, calc(100vh * 16 / 9));
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 22px 80px #0009, 0 0 0 1px rgba(232, 189, 104, 0.36), 0 0 0 6px rgba(15, 40, 42, 0.74);
 }
 
 #view {
@@ -60,6 +64,16 @@ body {
   container-type: size;
   container-name: stage;
   user-select: none;
+}
+
+#ui::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  z-index: 0;
+  pointer-events: none;
+  border: 1px solid rgba(232, 189, 104, 0.34);
+  box-shadow: inset 0 0 34px rgba(5, 18, 22, 0.34);
 }
 
 [hidden] {
@@ -114,11 +128,11 @@ input[type='range'],
   justify-content: center;
   min-height: 44px;
   padding: 0.4rem 0.85rem;
-  background: var(--parchment);
+  background: linear-gradient(180deg, #fff1d4, var(--parchment) 72%);
   color: var(--ink);
   border: 1px solid var(--brass);
-  box-shadow: 3px 3px 0 #0008;
-  font-weight: 500;
+  box-shadow: 2px 3px 0 #0008, inset 0 1px #fff8;
+  font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
 }
@@ -177,12 +191,12 @@ h2,
 .hud-chip,
 .chip {
   background-color: var(--parchment);
-  background-image: repeating-linear-gradient(
+  background-image: linear-gradient(145deg, rgba(255, 247, 224, 0.28), transparent 40%), repeating-linear-gradient(
     0deg,
     transparent,
     transparent 3px,
-    rgba(138, 98, 48, 0.045) 3px,
-    rgba(138, 98, 48, 0.045) 4px
+    rgba(138, 98, 48, 0.035) 3px,
+    rgba(138, 98, 48, 0.035) 4px
   );
   color: var(--ink);
   border: 1px solid var(--brass);
@@ -360,8 +374,8 @@ input[type='range'] {
 }
 
 .hud-chip {
-  box-shadow: 3px 3px 0 #0008;
-  padding: 4px 8px;
+  box-shadow: 2px 3px 0 #0008, 0 5px 18px #08111455;
+  padding: 5px 9px;
 }
 
 .where {
@@ -482,7 +496,7 @@ input[type='range'] {
   width: 148px;
   max-width: 34cqi;
   padding: 4px 6px 5px;
-  box-shadow: 3px 3px 0 #0008;
+  box-shadow: 2px 3px 0 #0008, 0 4px 14px #08111455;
 }
 
 .chip.down {
@@ -557,7 +571,7 @@ input[type='range'] {
 }
 
 .bar.atb > span {
-  background: var(--gold);
+  background: linear-gradient(90deg, #b88739, var(--gold));
 }
 
 .bar.atb.full > span {
@@ -809,6 +823,15 @@ input[type='range'] {
   z-index: 3;
 }
 
+.actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.act {
+  min-width: 0;
+  padding-inline: 0.3rem;
+}
+
 .enemies {
   position: absolute;
   top: 8px;
@@ -822,8 +845,10 @@ input[type='range'] {
 .enemy {
   min-width: 132px;
   max-width: 210px;
-  padding: 4px 7px 6px;
-  box-shadow: 3px 3px 0 #0008;
+  padding: 6px 8px 7px;
+  box-shadow: 2px 3px 0 #0008, 0 5px 18px #07101477;
+  border-top-color: #bd9657;
+  background-color: rgba(243, 230, 200, 0.97);
 }
 
 .enemy.boss {
@@ -832,11 +857,28 @@ input[type='range'] {
 }
 
 .charge {
-  margin-top: 2px;
+  display: block;
+  margin-top: 4px;
   color: var(--seal);
   font-weight: 650;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   letter-spacing: 0.06em;
+}
+
+.charge-bar {
+  height: 4px;
+  margin-top: 3px;
+  border-color: #583127;
+  background: #4a3027;
+}
+
+.charge-bar > span {
+  background: linear-gradient(90deg, #bf4c34, #f19a5e);
+  transition: width 120ms linear;
+}
+
+.charge-bar.ultimate > span {
+  background: linear-gradient(90deg, #9b2639, #f05c57, #ffc474);
 }
 
 .battle-meta {
@@ -846,7 +888,11 @@ input[type='range'] {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 3px;
+  gap: 5px;
+  padding: 6px 8px;
+  border: 1px solid rgba(232, 189, 104, 0.44);
+  background: rgba(8, 20, 24, 0.82);
+  box-shadow: 0 4px 16px #0005;
   color: var(--parchment);
   text-shadow: 1px 1px 0 var(--ink);
   font-size: 0.75rem;
@@ -855,6 +901,17 @@ input[type='range'] {
 .mode-label,
 .speed-label {
   font-weight: 500;
+}
+
+.active-turn {
+  padding: 3px 7px;
+  border: 1px solid rgba(232, 189, 104, 0.72);
+  color: #f5d38d;
+  background: rgba(24, 76, 75, 0.88);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: none;
 }
 
 .pips {
@@ -996,7 +1053,7 @@ input[type='range'] {
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  width: min(230px, 32%);
+  width: min(248px, 32%);
   z-index: 5;
   display: flex;
   flex-direction: column;
@@ -1005,7 +1062,10 @@ input[type='range'] {
 
 .dock-label {
   color: var(--parchment);
-  font-size: 0.72rem;
+  padding: 5px 8px;
+  border-left: 2px solid var(--gold);
+  background: rgba(8, 20, 24, 0.84);
+  font-size: 0.7rem;
   font-weight: 650;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1023,11 +1083,11 @@ input[type='range'] {
   min-height: 44px;
   padding: 0.3rem 0.5rem;
   text-align: left;
-  background: var(--parchment);
+  background: linear-gradient(145deg, #fff1d4, var(--parchment) 68%);
   color: var(--ink);
   border: 1px solid var(--brass);
-  box-shadow: 3px 3px 0 #0008;
-  font-weight: 500;
+  box-shadow: 2px 3px 0 #0008, 0 4px 12px #07101455;
+  font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
 }
@@ -1041,6 +1101,8 @@ input[type='range'] {
 
 .cmd.is-on {
   background: var(--gold);
+  border-color: #f5d58f;
+  box-shadow: 0 0 0 2px rgba(232, 189, 104, 0.32), 2px 3px 0 #0008;
 }
 
 .cmd.is-on .detail {
@@ -1050,6 +1112,29 @@ input[type='range'] {
 .cmd:active:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 #0008;
+}
+
+.rewind-btn {
+  min-height: 42px;
+  width: 100%;
+  margin-top: 3px;
+  border-color: #7bc7c1;
+  background: linear-gradient(180deg, #e8f2e6, #c7e0d7);
+  color: #143332;
+  box-shadow: 2px 3px 0 #061316aa;
+}
+
+.rewind-btn:disabled {
+  opacity: 0.48;
+}
+
+.rewind-btn:not(:disabled)::before {
+  content: 'R';
+  margin-right: 0.5rem;
+  padding: 1px 5px;
+  border: 1px solid #548883;
+  font-size: 0.72em;
+  line-height: 1.35;
 }
 
 .ending,
@@ -1309,7 +1394,149 @@ input[type='range'] {
   }
 
   .command-dock {
-    max-height: 38%;
+    max-height: 43%;
+    gap: 3px;
+  }
+
+  .battle .battle-meta {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    padding: 2px 4px;
+    gap: 4px;
+    font-size: 0.62rem;
+  }
+
+  .battle .enemies {
+    position: absolute;
+    top: 34px;
+    left: 4px;
+    right: 4px;
+    max-height: 55px;
+    padding: 0;
+  }
+
+  .battle .enemy {
+    min-width: 104px;
+    max-width: 42%;
+    padding: 2px 5px 3px;
+  }
+
+  .battle .charge {
+    margin-top: 1px;
+    font-size: 0.6rem;
+  }
+
+  .battle .charge-bar {
+    height: 3px;
+    margin-top: 2px;
+  }
+
+  .battle .battle-party {
+    position: absolute;
+    left: 4px;
+    bottom: 5px;
+    width: 46%;
+    padding: 0;
+  }
+
+  .battle .battle-party .chip {
+    min-width: 0;
+    padding: 2px 3px;
+  }
+
+  .battle .battle-party .name {
+    font-size: 0.67rem;
+  }
+
+  .battle .battle-party .stat-n,
+  .battle .battle-party .lv {
+    font-size: 0.58rem;
+  }
+
+  .battle .command-dock {
+    position: absolute;
+    top: auto;
+    right: 5px;
+    bottom: 5px;
+    left: auto;
+    width: 51%;
+    max-height: 47%;
+    padding: 0;
+    transform: none;
+    overflow: auto;
+  }
+
+  .battle .dock-label {
+    padding: 2px 5px;
+    font-size: 0.62rem;
+  }
+
+  .battle .commands,
+  .battle .targets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .battle .cmd {
+    min-height: 34px;
+    padding: 2px 4px;
+    font-size: 0.75rem;
+  }
+
+  .battle .cmd .detail {
+    font-size: 0.62rem;
+  }
+
+  .battle .rewind-btn {
+    min-height: 32px;
+  }
+
+  .battle .log {
+    position: absolute;
+    left: 5px;
+    bottom: 58px;
+    width: 43%;
+    max-height: 2.6em;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0.62rem;
+  }
+
+  .battle .banner {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    transform: translate(-50%, -50%);
+    width: 72%;
+    margin: 0;
+    font-size: clamp(1rem, 4.5cqi, 1.4rem);
+    z-index: 4;
+  }
+
+  .battle .tutorial {
+    position: absolute;
+    top: 45%;
+    width: 55%;
+    margin: 0;
+    padding: 4px 5px;
+    font-size: 0.66rem;
+    z-index: 4;
+  }
+
+  .actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .act {
+    min-height: 38px;
+    font-size: 0.68rem;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+  #app {
+    width: min(100vw, calc(100svh * 16 / 9));
   }
 }
 

@@ -73,6 +73,21 @@ function skyBands(ctx: CanvasRenderingContext2D, y0: number, y1: number, colors:
 }
 
 function paintBackdrop(ctx: CanvasRenderingContext2D, era: Era, time: number): void {
+  // The perspective floor leaves triangular shoulders. Clear those and the shake
+  // overscan every frame so the previous field scene cannot show through.
+  let ground: string
+  switch (era) {
+    case 'present': ground = '#4e7c34'; break
+    case 'future': ground = '#4a433c'; break
+    case 'past': ground = '#6e7080'; break
+    case 'void': ground = '#1b1a33'; break
+    default: {
+      const unreachable: never = era
+      void unreachable
+      ground = '#1b1a33'
+    }
+  }
+  blot(ctx, -16, -16, VIEW_W + 32, VIEW_H + 32, ground)
   if (era === 'present') {
     skyBands(ctx, -16, 120, ['#3e78a8', '#5e97c4', '#87b8d4', '#e2a56a', '#f0c48a', '#f6e2b8'])
     blot(ctx, 360, 28, 18, 18, '#f2d15a')
@@ -147,6 +162,88 @@ function paintBackdrop(ctx: CanvasRenderingContext2D, era: Era, time: number): v
     const x = 40 + (i * 53) % 400
     const y = 180 + (i * 17) % 70
     line(ctx, x, y, x + 6 + (i % 3), y + (i % 2), '#d7c07a')
+  }
+}
+
+function paintBattleDetails(ctx: CanvasRenderingContext2D, era: Era, time: number): void {
+  if (era === 'present') {
+    // Sunlit lane: hedgerows, pennants and scattered wildflowers.
+    for (let i = 0; i < 10; i++) {
+      const x = 12 + i * 49
+      const y = 111 + (i % 3) * 6
+      blot(ctx, x, y, 22, 4, '#2a5424')
+      blot(ctx, x + 3, y - 3, 15, 4, '#3f7a32')
+      dot(ctx, x + 9, y - 3, '#8fbf5e')
+    }
+    line(ctx, 14, 42, 110, 55, '#7d5a3a')
+    for (let i = 0; i < 6; i++) {
+      const x = 22 + i * 15
+      tri(ctx, x, 46 + i * 2, 8, 8, i % 2 ? '#f2d15a' : '#e07aa0')
+    }
+    for (let i = 0; i < 22; i++) {
+      const x = 18 + (i * 71) % 450
+      const y = 146 + (i * 29) % 98
+      dot(ctx, x, y, i % 3 === 0 ? '#f4f0e6' : '#f2d15a')
+      dot(ctx, x, y + 1, '#3f7a32')
+    }
+  } else if (era === 'future') {
+    // Broken industrial horizon and isolated emergency beacons.
+    for (let i = 0; i < 7; i++) {
+      const x = 35 + i * 69
+      const h = 17 + (i * 11) % 24
+      blot(ctx, x, 112 - h, 10, h, i % 2 ? '#3a342f' : '#4a403c')
+      blot(ctx, x + 3, 112 - h - 3, 4, 3, '#2e2926')
+      if (i % 2 === 0) blot(ctx, x + 3, 100 - h / 2, 3, 2, Math.sin(time * 3 + i) > 0 ? '#7ec8c3' : '#385e5c')
+    }
+    for (let i = 0; i < 16; i++) {
+      const x = 14 + (i * 83) % 450
+      const y = 142 + (i * 37) % 120
+      line(ctx, x, y, x + 4 + (i % 3), y + 2, '#4a433c')
+      if (i % 4 === 0) dot(ctx, x + 6, y + 2, '#a24b32')
+    }
+    ctx.save()
+    ctx.globalAlpha = 0.45
+    for (let i = 0; i < 17; i++) {
+      const x = (i * 61 - time * (5 + i % 3) + VIEW_W * 10) % VIEW_W
+      const y = (i * 47 + time * 9) % VIEW_H
+      dot(ctx, x, y, '#c4b48a')
+    }
+    ctx.restore()
+  } else if (era === 'past') {
+    // Cathedral windows cast broken gold across the stone aisle.
+    for (const x of [70, 156, 310, 396]) {
+      blot(ctx, x, 24, 20, 48, '#4a3c48')
+      blot(ctx, x + 3, 28, 14, 37, '#7a2e3b')
+      blot(ctx, x + 9, 27, 2, 40, '#d7c07a')
+      blot(ctx, x + 3, 45, 14, 2, '#d7c07a')
+      blot(ctx, x + 1, 22, 18, 3, '#c5c7d0')
+    }
+    for (let i = 0; i < 8; i++) {
+      const x = 42 + i * 57
+      const y = 152 + (i % 3) * 18
+      line(ctx, x, y, x + 17, y + 25, '#b8a87c')
+      dot(ctx, x + 4, y + 7, '#e2d4a9')
+    }
+    for (let i = 0; i < 12; i++) {
+      const x = (i * 71 + time * 3) % VIEW_W
+      const y = 16 + (i * 53) % 130
+      dot(ctx, x, y, '#c5c7d0')
+    }
+  } else {
+    // A clock face under the arena: its fragments drift independently.
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2 + time * 0.025
+      const x = 240 + Math.cos(a) * 176
+      const y = 132 + Math.sin(a) * 92
+      line(ctx, x, y, x + Math.cos(a) * 9, y + Math.sin(a) * 5, '#8f805e')
+    }
+    for (let i = 0; i < 14; i++) {
+      const x = 12 + (i * 67) % 455
+      const y = 142 + (i * 23) % 113
+      const offset = Math.sin(time * 1.4 + i * 2) * 2
+      line(ctx, x, y + offset, x + 5, y + offset - 1, '#645c78')
+      dot(ctx, x + 2, y + offset, i % 2 ? '#7ec8c3' : '#d7c07a')
+    }
   }
 }
 
@@ -242,6 +339,11 @@ function paintFx(ctx: CanvasRenderingContext2D, element: Element, raw: number, t
   const focusX = element === 'heal' ? 130 : 330
   const focusY = element === 'heal' ? 150 : 112
   if (element === 'fire') {
+    ctx.save()
+    ctx.globalAlpha = (1 - t) * 0.75
+    ring(ctx, focusX, focusY + 15, 8 + t * 40, 4 + t * 16, '#f2d15a')
+    ring(ctx, focusX, focusY + 15, 4 + t * 29, 2 + t * 10, '#e07a32')
+    ctx.restore()
     for (let i = 0; i < 20; i++) {
       const life = (t * 1.2 + i * 0.07) % 1
       const x = focusX + Math.sin(i * 2.1) * (10 + life * 36)
@@ -254,6 +356,15 @@ function paintFx(ctx: CanvasRenderingContext2D, element: Element, raw: number, t
     return
   }
   if (element === 'ice') {
+    ctx.save()
+    ctx.globalAlpha = 0.75 * (1 - t)
+    for (let i = 0; i < 5; i++) {
+      const x = focusX - 32 + i * 16
+      const h = 12 + (i % 3) * 7
+      line(ctx, x - 5, focusY + 24, x, focusY + 24 - h, '#d5ecf2')
+      line(ctx, x, focusY + 24 - h, x + 5, focusY + 24, '#7eb4d8')
+    }
+    ctx.restore()
     for (let i = 0; i < 14; i++) {
       const a = (i / 14) * Math.PI * 2 + t
       const dist = 8 + t * 48
@@ -265,6 +376,10 @@ function paintFx(ctx: CanvasRenderingContext2D, element: Element, raw: number, t
     return
   }
   if (element === 'volt') {
+    ctx.save()
+    ctx.globalAlpha = (1 - t) * 0.75
+    ring(ctx, focusX, focusY, 4 + t * 31, 3 + t * 14, '#d7f7e5')
+    ctx.restore()
     let x = 120
     let y = 150
     const bolts = 8
@@ -284,6 +399,10 @@ function paintFx(ctx: CanvasRenderingContext2D, element: Element, raw: number, t
     return
   }
   if (element === 'shadow') {
+    ctx.save()
+    ctx.globalAlpha = (1 - t) * 0.7
+    ring(ctx, focusX, focusY + 15, 10 + t * 26, 5 + t * 9, '#9b76bd')
+    ctx.restore()
     for (let i = 0; i < 8; i++) {
       const a = time * 2 + i
       const x = focusX + Math.cos(a) * (12 + t * 30)
@@ -297,6 +416,12 @@ function paintFx(ctx: CanvasRenderingContext2D, element: Element, raw: number, t
     return
   }
   if (element === 'heal') {
+    ctx.save()
+    ctx.globalAlpha = (1 - t) * 0.8
+    ring(ctx, focusX, focusY + 15, 9 + t * 31, 4 + t * 12, '#b6e38a')
+    line(ctx, focusX - 4, focusY - 9, focusX + 4, focusY - 9, '#f4f7c8')
+    line(ctx, focusX, focusY - 13, focusX, focusY - 5, '#f4f7c8')
+    ctx.restore()
     for (let i = 0; i < 16; i++) {
       const life = (t + i * 0.08) % 1
       const x = focusX + Math.sin(i * 1.7) * 28
@@ -309,6 +434,11 @@ function paintFx(ctx: CanvasRenderingContext2D, element: Element, raw: number, t
     return
   }
   if (element === 'phys') {
+    ctx.save()
+    ctx.globalAlpha = 1 - t * 0.8
+    line(ctx, focusX - 30 + t * 15, focusY + 22, focusX + 20 + t * 15, focusY - 22, '#fff8ee')
+    line(ctx, focusX - 26 + t * 15, focusY + 23, focusX + 24 + t * 15, focusY - 21, '#d7c07a')
+    ctx.restore()
     for (let i = 0; i < 5; i++) {
       const sweep = t * Math.PI + i * 0.4
       for (let s = 0; s < 10; s++) {
@@ -354,6 +484,7 @@ export function drawBattle(
     ctx.translate(sx, sy)
   }
   paintBackdrop(ctx, opts.era, opts.time)
+  paintBattleDetails(ctx, opts.era, opts.time)
   const foes = opts.enemies.slice().sort((a, b) => a.slot - b.slot)
   const friends = opts.allies.slice().sort((a, b) => a.slot - b.slot)
   for (const actor of foes) drawFighter(ctx, actor, false, opts.time)

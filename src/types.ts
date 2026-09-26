@@ -499,6 +499,11 @@ export interface BattleSnapshot {
   lockedElement: Element | null
   hourSpawned: boolean
   log: string[]
+  rng: number
+  discovered: { enemyId: string; element: Element }[]
+  consumed: string[]
+  inventory: Record<string, number>
+  rewards: BattleRewards
 }
 
 export type FieldEvent =
@@ -573,6 +578,8 @@ export interface ShopModel {
 
 export interface BattleUi {
   phase: 'fight' | 'victory' | 'defeat' | 'flee'
+  actorName: string | null
+  canRewind: boolean
   commands: { id: string; label: string; detail?: string; disabled?: boolean }[]
   commandIndex: number
   targets: { id: string; label: string }[]
@@ -588,7 +595,7 @@ export interface BattleUi {
   rewards: null | { lines: string[] }
   floaters: { id: string; text: string; x: number; y: number; kind: 'dmg' | 'heal' | 'weak' }[]
   party: PartyChip[]
-  enemies: { uid: string; name: string; hp: number; maxHp: number; charging: string; boss: boolean }[]
+  enemies: { uid: string; name: string; hp: number; maxHp: number; charging: string; chargeProgress: number; ultimate: boolean; boss: boolean }[]
 }
 
 export interface UiModel {

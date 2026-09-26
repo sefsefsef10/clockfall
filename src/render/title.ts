@@ -74,6 +74,44 @@ function clock(ctx: CanvasRenderingContext2D, time: number, smooth: boolean, war
   blot(ctx, cx - 1, cy - 1, 2, 2, '#1a120e')
 }
 
+function gear(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, time: number, color: string): void {
+  ring(ctx, cx, cy, radius, color, 5)
+  ring(ctx, cx, cy, radius - 5, color, 7)
+  ring(ctx, cx, cy, 4, color, 9)
+  for (let i = 0; i < 12; i++) {
+    const a = i * Math.PI / 6 + time
+    const x0 = cx + Math.cos(a) * (radius - 5)
+    const y0 = cy + Math.sin(a) * (radius - 5)
+    const x1 = cx + Math.cos(a) * (radius + 6)
+    const y1 = cy + Math.sin(a) * (radius + 6)
+    line(ctx, x0, y0, x1, y1, color)
+  }
+}
+
+function timeline(ctx: CanvasRenderingContext2D, time: number, ending: boolean): void {
+  const warm = ending ? '#f6e2b8' : '#d7c07a'
+  const cool = ending ? '#b4e3da' : '#7ec8c3'
+  ctx.save()
+  ctx.globalAlpha = ending ? 0.48 : 0.35
+  gear(ctx, 109, 135, 43, -time * 0.06, warm)
+  gear(ctx, 370, 136, 48, time * 0.05, cool)
+  line(ctx, 0, 90, 480, 180, warm)
+  line(ctx, 0, 180, 480, 90, cool)
+  line(ctx, 0, 88, 480, 178, warm)
+  line(ctx, 0, 182, 480, 92, cool)
+  ctx.restore()
+  for (let i = 0; i < 9; i++) {
+    const a = i * Math.PI * 2 / 9 + time * 0.15
+    const x = 240 + Math.cos(a) * 110
+    const y = 132 + Math.sin(a) * 104
+    dot(ctx, x, y, i % 2 ? cool : warm)
+    if (i % 3 === 0) {
+      dot(ctx, x - 1, y, warm)
+      dot(ctx, x + 1, y, warm)
+    }
+  }
+}
+
 function motes(ctx: CanvasRenderingContext2D, time: number, avoidCenter: boolean): void {
   const colors = ['#f2d15a', '#7ec8c3', '#efe6d0', '#e07aa0', '#d7c07a']
   for (let i = 0; i < 28; i++) {
@@ -139,6 +177,7 @@ function paintScene(ctx: CanvasRenderingContext2D, time: number, ending: boolean
   fairBand(ctx, ending && band === 0)
   ashBand(ctx, 90, 180, ending && band === 1)
   stoneBand(ctx, ending && band === 2)
+  timeline(ctx, time, ending)
   clock(ctx, time, ending, ending)
   centerShade(ctx, ending ? 0.42 : 0.62)
   if (ending) {

@@ -109,6 +109,16 @@ export const maps: Record<MapId, GameMap> = {
           'Bring me a nicked edge and I will pretend I am busy.',
         ],
       },
+      {
+        id: 'rainroot-witness',
+        name: 'Treekeeper', portrait: 'npc', sprite: 'kid', x: 7, y: 16,
+        lines: [], script: 'seed_witness', requires: 'seed_planted', unless: 'seed_seen',
+      },
+      {
+        id: 'rainroot-witness-after',
+        name: 'Treekeeper', portrait: 'npc', sprite: 'kid', x: 7, y: 16,
+        lines: ['The rainroot has weathered every storm this town remembers.'], requires: 'seed_seen',
+      },
     ],
     enemies: [],
     chests: [],
@@ -390,6 +400,21 @@ export const maps: Record<MapId, GameMap> = {
           'Ash tonic and mail. The marks still spend, out of habit.',
           'Do not haggle loud. The cathedral listens through the cracks.',
         ],
+      },
+      {
+        id: 'dry-refuge',
+        name: 'Iona', portrait: 'survivor', sprite: 'survivor', x: 7, y: 16,
+        lines: [], script: 'seed_hear', unless: 'seed_planted',
+      },
+      {
+        id: 'rainroot-refuge',
+        name: 'Iona', portrait: 'survivor', sprite: 'survivor', x: 7, y: 16,
+        lines: [], script: 'seed_reward', requires: 'seed_planted', unless: 'seed_claimed',
+      },
+      {
+        id: 'rainroot-refuge-after',
+        name: 'Iona', portrait: 'survivor', sprite: 'survivor', x: 7, y: 16,
+        lines: ['There is room beneath the branches. Stay until the rain passes.'], requires: 'seed_claimed',
       },
     ],
     enemies: [
@@ -692,6 +717,16 @@ export const maps: Record<MapId, GameMap> = {
           'Sir Torin paces the south court when the hour goes thin.',
           'He still answers a bell that has not been cast.',
         ],
+      },
+      {
+        id: 'rainroot-gardener',
+        name: 'Gardener', portrait: 'npc', sprite: 'kid', x: 7, y: 16,
+        lines: [], script: 'seed_plant', unless: 'seed_planted',
+      },
+      {
+        id: 'rainroot-gardener-after',
+        name: 'Gardener', portrait: 'npc', sprite: 'kid', x: 7, y: 16,
+        lines: ['The seed has taken. I hope the centuries treat it kindly.'], requires: 'seed_planted',
       },
     ],
     enemies: [

@@ -1,21 +1,5 @@
 import type { BattleUi, MenuModel, PartyChip, PortraitId, ShopModel, UiHandlers, UiModel } from '../types.ts'
-
-type PortraitDrawer = (ctx: CanvasRenderingContext2D, id: PortraitId, frame?: number) => void
-
-let portraitDrawer: PortraitDrawer | null = null
-
-function bootPortraits(): void {
-  const spec = '../render/sprites.ts'
-  void import(/* @vite-ignore */ spec)
-    .then((mod: { drawPortrait?: PortraitDrawer }) => {
-      if (typeof mod.drawPortrait === 'function') portraitDrawer = mod.drawPortrait
-    })
-    .catch(() => {
-      portraitDrawer = null
-    })
-}
-
-bootPortraits()
+import { drawPortrait } from '../render/sprites.ts'
 
 function div(className: string): HTMLDivElement {
   const node = document.createElement('div')
@@ -77,13 +61,8 @@ function paintPortrait(canvas: HTMLCanvasElement, id: PortraitId, frame: number)
   if (canvas.height !== 64) canvas.height = 64
   ctx.imageSmoothingEnabled = false
   try {
-    if (!portraitDrawer) {
-      ctx.fillStyle = '#8a6230'
-      ctx.fillRect(0, 0, 64, 64)
-      return
-    }
     ctx.clearRect(0, 0, 64, 64)
-    portraitDrawer(ctx, id, frame)
+    drawPortrait(ctx, id, frame)
   } catch {
     ctx.fillStyle = '#8a6230'
     ctx.fillRect(0, 0, 64, 64)
@@ -379,11 +358,12 @@ function buildTouch(handlers: UiHandlers): HTMLElement {
     dpad.append(btn)
   }
   const actions = div('actions')
-  const acts: ['confirm' | 'cancel' | 'menu' | 'run', string][] = [
+  const acts: ['confirm' | 'cancel' | 'menu' | 'run' | 'rewind', string][] = [
     ['confirm', 'Confirm'],
     ['cancel', 'Cancel'],
     ['menu', 'Menu'],
     ['run', 'Run'],
+    ['rewind', 'Rewind'],
   ]
   for (const [action, label] of acts) {
     const btn = document.createElement('button')
@@ -571,12 +551,17 @@ function buildBattle(model: UiModel, handlers: UiHandlers): HTMLElement {
     bar.append(document.createElement('span'))
     const charge = span('charge')
     charge.hidden = true
-    card.append(head, bar, charge)
+    const chargeBar = div('bar charge-bar')
+    chargeBar.hidden = true
+    chargeBar.append(document.createElement('span'))
+    card.append(head, bar, charge, chargeBar)
     enemies.append(card)
   }
 
   const meta = div('battle-meta')
-  meta.append(span('mode-label'), span('speed-label'), span('echo-count'), div('pips'))
+  const activeTurn = span('active-turn')
+  activeTurn.hidden = true
+  meta.append(activeTurn, span('mode-label'), span('speed-label'), span('echo-count'), div('pips'))
   const clock = div('clock mini')
   clock.dataset.clock = '1'
   clock.append(span('read'))
@@ -608,7 +593,11 @@ function buildBattle(model: UiModel, handlers: UiHandlers): HTMLElement {
   for (const target of battle?.targets ?? []) targets.append(commandButton(target.id, handlers))
   const commands = div('commands')
   for (const command of battle?.commands ?? []) commands.append(commandButton(command.id, handlers))
-  dock.append(dockLabel, targets, commands)
+  const rewind = makeBtn('⟲  Rewind', () => handlers.press('rewind'))
+  rewind.classList.add('rewind-btn')
+  rewind.dataset.rewind = '1'
+  rewind.setAttribute('aria-label', 'Rewind the last action')
+  dock.append(dockLabel, targets, commands, rewind)
 
   layer.append(enemies, meta, banner, tutorial, floaters, log, rewards, party, dock)
   return layer
@@ -681,13 +670,24 @@ function updateBattle(node: HTMLElement, model: UiModel): void {
     const hpRatio = ratio(enemy.hp, enemy.maxHp)
     setBar(card.querySelector('.bar.hp'), hpRatio, hpRatio < 0.3)
     const charge = card.querySelector<HTMLElement>('.charge')
+    const chargeBar = card.querySelector<HTMLElement>('.charge-bar')
     if (charge) {
       setText(charge, enemy.charging)
       charge.hidden = !enemy.charging
     }
+    if (chargeBar) {
+      chargeBar.hidden = !enemy.charging
+      setBar(chargeBar, ratio(enemy.chargeProgress, 1))
+      chargeBar.classList.toggle('ultimate', enemy.ultimate)
+    }
   })
   setText(node.querySelector('.mode-label'), battle.modeLabel)
   setText(node.querySelector('.speed-label'), `×${battle.speed}`)
+  const activeTurn = node.querySelector<HTMLElement>('.active-turn')
+  if (activeTurn) {
+    setText(activeTurn, battle.actorName ? `${battle.actorName} · YOUR TURN` : '')
+    activeTurn.hidden = !battle.actorName
+  }
   setText(node.querySelector('.echo-count'), `${battle.echoes}/${battle.echoMax}`)
   const pips = node.querySelector<HTMLElement>('.pips')
   if (pips) {
@@ -757,9 +757,21 @@ function updateBattle(node: HTMLElement, model: UiModel): void {
   updateParty(node, battle.party)
   updateClock(node, model)
   const dockLabel = node.querySelector<HTMLElement>('.dock-label')
+  const rewind = node.querySelector<HTMLButtonElement>('[data-rewind]')
   const targets = node.querySelector<HTMLElement>('.targets')
   const commands = node.querySelector<HTMLElement>('.commands')
-  if (dockLabel) dockLabel.hidden = !battle.pickingTarget
+  if (dockLabel) {
+    setText(
+      dockLabel,
+      battle.pickingTarget
+        ? 'Choose a target'
+        : battle.actorName
+          ? `${battle.actorName} · Choose an action`
+          : 'Choose an action',
+    )
+    dockLabel.hidden = false
+  }
+  if (rewind) rewind.disabled = !battle.canRewind
   if (targets) targets.hidden = !battle.pickingTarget
   if (commands) commands.hidden = battle.pickingTarget
   if (battle.pickingTarget && targets) updateCommandButtons(targets, battle.targets, battle.targetIndex)
